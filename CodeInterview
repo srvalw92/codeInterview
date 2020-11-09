@@ -1,0 +1,54 @@
+Public class rollupCOuntriesOnAccount{
+    Public void CalculateCountryCount(Set<Id> AccIdSet){
+    
+        List<Account> acclistToUpdate = new List<Account>();
+        map<String,Id> mapcountryWithAccId = new map<String,Id>();
+        map<Id, List<String>> mapaccIdwithCountry = new map<Id, List<String>>();
+        
+        set<String> setstr = new set<String>();
+        
+        for(Contact conlist : [Select id ,country__c,AccountId from Contact where AccountId IN:AccIdSet]){
+            
+            mapcountryWithAccId.put(conlist.country__c+'-'+conlist.AccountId, conlist.AccountId);
+            system.debug('--->>>1'+mapcountryWithAccId);
+            
+        }
+        system.debug('--->>>2'+mapcountryWithAccId);
+        if(mapcountryWithAccId.keySet() !=null){
+            setstr = mapcountryWithAccId.keySet();
+        }
+        
+        
+        for(String strkey : setstr){
+            Id accId=mapcountryWithAccId.get(strkey);
+            if(mapaccIdwithCountry.containsKey(accId)){
+                List<String> listCountries=mapaccIdwithCountry.get(accId);
+                string s = strkey.split('-')[0];
+                listCountries.add(s);
+                mapaccIdwithCountry.put( accId,listCountries);
+            }
+            else{
+                
+                List<String> listCountries=new List<String>();
+                string s = strkey.split('-')[0];
+                listCountries.add(s);
+                mapaccIdwithCountry.put(accId,listCountries);
+            }
+            
+            
+        }
+        
+        for(Account acc : [select id, TotalContact__c from account where id=:mapaccIdwithCountry.keyset()]){
+            system.debug('acclistToUmapaccIdwithCountry.get(acc.Id)'+mapaccIdwithCountry.get(acc.Id));
+                List<String> lststr = mapaccIdwithCountry.get(acc.Id);
+                Integer Size = lststr.size();
+                system.debug('iiii'+Size);
+                
+                acc.TotalContact__c = String.valueOf(Size);
+                acclistToUpdate.add(acc);
+            }
+        update acclistToUpdate;
+            
+    }
+        
+}
